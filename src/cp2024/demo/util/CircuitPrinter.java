@@ -50,7 +50,7 @@ public class CircuitPrinter {
      */
     private static String handleLeafNode(CircuitNode node) throws InterruptedException {
         if (node instanceof cp2024.circuit.LeafNode) {
-            boolean value = ((cp2024.circuit.LeafNode) node).getValue();
+            boolean value = ((cp2024.circuit.LeafNode) node).value();
             return value ? "TRUE" : "FALSE";
         }
         return "[Unknown Leaf Node]";

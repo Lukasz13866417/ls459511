@@ -45,12 +45,10 @@ public class ParallelCircuitSolver implements CircuitSolver {
 
     public static class ParallelCircuitValue implements CircuitValue {
         private final Worker rootWorker;
-        private final AtomicBoolean started;
         private final AtomicBoolean finishedTooEarly;
 
         public ParallelCircuitValue(Worker rootWorker) {
             this.rootWorker = rootWorker;
-            this.started = new AtomicBoolean(false);
             this.finishedTooEarly = new AtomicBoolean(false);
         }
 

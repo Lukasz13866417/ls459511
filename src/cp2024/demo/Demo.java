@@ -7,14 +7,14 @@ import cp2024.solution.ParallelCircuitSolver;
 import java.time.Duration;
 
 public class Demo {
-    public static void main(String[] args) throws InterruptedException {
+    private static void demo() throws InterruptedException{
         long start = System.nanoTime();
-        // CircuitSolver solver = new ParallelCircuitSolver();
-        CircuitSolver solver = new SequentialSolver();
+        CircuitSolver solver = new ParallelCircuitSolver();
+        //CircuitSolver solver = new SequentialSolver();
 
         Log.LOG.logging = false;
         Circuit c = new Circuit(CircuitNode.mk(true));
-        System.out.println("Solved: " + solver.solve(c).getValue());
+        solver.solve(c).getValue();
 
         c = new Circuit(CircuitNode.mk(false, Duration.ofSeconds(3)));
         CircuitValue firstValue = solver.solve(c);
@@ -28,8 +28,8 @@ public class Demo {
                         CircuitNode.mk(false, Duration.ofSeconds(3))));
         CircuitValue secondValue = solver.solve(c);
 
-        System.out.println("Second value: " + secondValue.getValue());
-        System.out.println("First value: " + firstValue.getValue());
+        secondValue.getValue();
+        firstValue.getValue();
 
         c = new Circuit(
                 CircuitNode.mk(NodeType.IF,
@@ -37,20 +37,25 @@ public class Demo {
                         CircuitNode.mk(false),
                         CircuitNode.mk(true, Duration.ofSeconds(3))));
         CircuitValue thirdValue = solver.solve(c);
-        System.out.println("Third value: " + thirdValue.getValue());
+        thirdValue.getValue();
 
         solver.stop();
 
         c = new Circuit(CircuitNode.mk(true));
         try {
-            System.out.println("Solver stopped, but solved fourth circuit: " + solver.solve(c).getValue());
+            solver.solve(c).getValue();
         } catch (InterruptedException e) {
-            System.out.println("Solver interrupted computation of the fourth circuit.");
         }
-        System.out.println("Third value should be returned with no exception:");
-        System.out.println("Third value snd time: " + thirdValue.getValue());
 
-        System.out.println("End of demo");
+        thirdValue.getValue();
+
+       // System.out.println("End of demo");
         System.out.println(System.nanoTime() - start);
+    }
+    public static void main(String[] args) throws InterruptedException {
+
+       for(int i=0;i<100;++i){
+           demo();
+       }
     }
 }

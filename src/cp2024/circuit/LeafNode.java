@@ -6,4 +6,6 @@ public abstract non-sealed class LeafNode extends CircuitNode {
     }
 
     abstract public boolean getValue() throws InterruptedException;
+
+    abstract public boolean value();
 }

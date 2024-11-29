@@ -21,4 +21,9 @@ public class SleepyLeafNode extends LeafNode {
         Thread.sleep(this.delay.toMillis());
         return this.value;
     }
+
+    @Override
+    public boolean value() {
+        return this.value;
+    }
 }

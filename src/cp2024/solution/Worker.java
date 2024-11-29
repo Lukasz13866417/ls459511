@@ -6,6 +6,7 @@ import cp2024.circuit.NodeType;
 import cp2024.demo.util.CircuitPrinter;
 import cp2024.demo.util.Log;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, GTWorker, LTWorker, LeafWorker, NotWorker, IfWorker {
@@ -19,6 +20,8 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
 
     private final AtomicBoolean res, isFinished, childrenFound;
 
+    private final Semaphore finishSemaphore;
+
     String str;
 
     public Worker(CircuitNode node, Worker parent) {
@@ -28,6 +31,7 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
         this.isFinished = new AtomicBoolean(false);
         this.childrenFound = new AtomicBoolean(false);
         str = CircuitPrinter.printCircuit(node);
+        finishSemaphore = new Semaphore(0,true);
     }
 
     @SynchronizedImplementation
@@ -36,13 +40,13 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
     protected synchronized void finishAndSubmit(boolean res) {
         this.res.set(res);
         finish();
-        Log.LOG.log("Worker " + this + " has res " + res + ". Sending res to parent: " + parent);
+        //Log.LOG.log("Worker " + this + " has res " + res + ". Sending res to parent: " + parent);
         if (parent != null && !parent.isFinished.get()) {
             parent.receiveRes(node, res);
         }
     }
 
-    private void findChildren() throws InterruptedException {
+    private synchronized void findChildren() throws InterruptedException {
         if (!childrenFound.get()) {
             this.childNodes = node.getArgs();
             this.nChildren = childNodes.length;
@@ -50,6 +54,7 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
             this.children = new Worker[nChildren];
             for (int i = 0; i < nChildren; i++) {
                 children[i] = createWorker(childNodes[i], this);
+                assert(children[i] != null);
             }
             childrenFound.set(true);
         }
@@ -58,7 +63,7 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
     /**
      * Konczy prace swoja i dzieci
      */
-    public synchronized void finish() {
+    public void finish() {
         if (!isFinished.get()) {
             isFinished.set(true);
             Log.LOG.log(toString() + " started finishing.");
@@ -73,7 +78,9 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
             } // else { NIC } Jesli jeszcze nie znamy dzieci tego goscia,
             // ,to na pewno sie jeszcze nie uruchomily.
             Log.LOG.log(toString() + " finished. ");
+            finishSemaphore.release();
         }
+
     }
 
     /**
@@ -116,16 +123,13 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
     }
 
     public void blockUntilFinished() throws InterruptedException {
-        if (childrenFound.get()) {
-            for (Worker child : children) {
-                child.blockUntilFinished();
-            }
-        }//else {NIC} (Jesli dzieci nie stworzylismy jeszcze to nie ma sensu ich budzic}
-        join();
-        isFinished.set(true);
+        if(!isFinished.get()) {
+            finishSemaphore.acquire();
+        }
+        Log.LOG.log(toString() + " finished ");
     }
 
-    public synchronized boolean getRes() {
+    public boolean getRes() {
         if (!isFinished.get()) {
             throw new IllegalStateException("Obliczenia jeszcze sie nie skonczyly");
         }
