@@ -74,11 +74,11 @@ public sealed abstract class Worker extends Thread permits AndWorker, OrWorker, 
                         child.finish();
                     }
                 }
-                interrupt();
             } // else { NIC } Jesli jeszcze nie znamy dzieci tego goscia,
             // ,to na pewno sie jeszcze nie uruchomily.
             Log.LOG.log(toString() + " finished. ");
             finishSemaphore.release();
+            interrupt();
         }
 
     }

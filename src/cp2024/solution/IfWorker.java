@@ -32,6 +32,11 @@ public final class IfWorker extends Worker{
             resB.set(childRes);
             readyB.set(true);
         }
+
+        if(readyA.get() && readyB.get() && resA.get() == resB.get()){
+            finishAndSubmit(resA.get());
+            return;
+        }
         if(readyCondition.get()){
             if(condition.get() && readyA.get()){
                 finishAndSubmit(resA.get());

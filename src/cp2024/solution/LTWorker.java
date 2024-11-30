@@ -6,10 +6,10 @@ import cp2024.circuit.ThresholdNode;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class LTWorker extends Worker{
-    private final AtomicInteger cntTrue, cntAll;
+    private final AtomicInteger cntFalse, cntAll;
     public LTWorker(CircuitNode node, Worker parent) {
         super(node, parent);
-        this.cntTrue = new AtomicInteger(0);
+        this.cntFalse = new AtomicInteger(0);
         this.cntAll = new AtomicInteger(0);
     }
 
@@ -20,14 +20,19 @@ public final class LTWorker extends Worker{
         int threshold = thrNode.getThreshold();
         int all = cntAll.incrementAndGet();
         if(childRes){
-            int curr = cntTrue.incrementAndGet();
-            if(curr >= threshold){
+            if(cntAll.get() - cntFalse.get() >= threshold){
                 finishAndSubmit(false);
+                return;
+            }
+        }else{
+            int curr = cntFalse.incrementAndGet();
+            if(nChildren - curr  < threshold){
+                finishAndSubmit(true);
                 return;
             }
         }
         if(all == nChildren){
-            finishAndSubmit(cntTrue.intValue() < threshold);
+            finishAndSubmit(cntFalse.intValue() < threshold);
         }
     }
 }

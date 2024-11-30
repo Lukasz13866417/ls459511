@@ -78,7 +78,7 @@ public class ParallelCircuitSolver implements CircuitSolver {
 
     public static class BrokenCircuitValue implements CircuitValue {
         @Override
-        public boolean getValue() throws InterruptedException {
+        public synchronized boolean getValue() throws InterruptedException {
             throw new InterruptedException();
         }
     }

@@ -4,6 +4,7 @@ import cp2024.circuit.CircuitNode;
 import cp2024.circuit.ThresholdNode;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import cp2024.demo.util.Log;
 
 public final class GTWorker extends Worker{
     private final AtomicInteger cntTrue, cntAll;
@@ -19,9 +20,15 @@ public final class GTWorker extends Worker{
         ThresholdNode thrNode = (ThresholdNode) node;
         int threshold = thrNode.getThreshold();
         int all = cntAll.incrementAndGet();
+        Log.LOG.log(toString() + " gets " + childRes  + " (thr: " + threshold+")");
         if(childRes){
             int curr = cntTrue.incrementAndGet();
-            if(curr <= threshold){
+            if(curr > threshold){
+                finishAndSubmit(true);
+                return;
+            }
+        }else{
+            if(cntTrue.get() + nChildren - cntAll.get() <= threshold){
                 finishAndSubmit(false);
                 return;
             }
